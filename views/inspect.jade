@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h1= '/' + binId
+  p
+    | Send HTTP requests to 
+    a(href='/#{binId}',target='_blank') http://#{host}/#{binId}
+    |  and they will be captured on this page.
+  if requests.length
+    ul
+      each request in requests
+        li.request
+          h3 #{request.ago} 
+            span.light (#{request.utc}, #{request.ts}ms)
+          div.raw #{request.raw}
+    p
+      a.button(href='/inspect/'+newId, target='_blank') New Bin
+      a.button(href='/', target='_blank') Home
+  else 
+    p No requests have been placed in this bin yet.
+    p 
+      a.button(href='/') Home
