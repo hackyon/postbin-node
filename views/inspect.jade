@@ -15,8 +15,9 @@ block content
           div.raw #{request.raw}
     p
       a.button(href='/inspect/'+newId, target='_blank') New Bin
-      a.button(href='/', target='_blank') Home
+      a(href='/', target='_blank') Home
   else 
     p No requests have been placed in this bin yet.
-    p 
-      a.button(href='/') Home
+    p
+      a(href='/') Home
+
