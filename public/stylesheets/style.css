@@ -173,6 +173,10 @@ a.button:hover {
 p {
   margin: 0 0 10px 0;
 }
+code {
+  font-size: 93%;
+  font-family: Courier;
+}
 h1 {
   font-size: 26px;
   line-height: 44px;

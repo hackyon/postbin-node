@@ -15,7 +15,6 @@ app.configure(function() {
   app.use(express.favicon(path.join(__dirname, 'public/favicon.ico')));
   app.use(express.logger('dev'));
   app.use(express.cookieParser());
-  app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(require('less-middleware')({ src: __dirname + '/public' }));
   app.use(express.static(path.join(__dirname, 'public')));
@@ -116,7 +115,7 @@ app.all('/:id', function(req, res) {
     // Render 404 if id is not well-formed
     render404(req, res);
     return;
-  } 
+  }
 
   // Construct the raw body of the request
   var rawBody = '';
