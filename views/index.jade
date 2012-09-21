@@ -9,10 +9,10 @@ block content
       a(href='http://nodejs.org', target='_blank') node.js
       |  and 
       a(href='http://expressjs.com', target='_blank') express.js
-      | . It's an more visually pleasing alternative for 
+      | . It's an more visually pleasing alternative to 
       code tcpdump -x
       | .
-    p Each bin stores a maximum of 10 requests. 
+    p Each bin stores a maximum of 10 requests. Bins are removed if they have not been accessed for 48 hours.
     a.button(href='/inspect/'+newId) Create Bin
 
     if recentBins.length

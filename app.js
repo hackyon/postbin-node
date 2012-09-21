@@ -1,5 +1,10 @@
+// TODO: Support sockets
+// TODO: User-specified response for HTTP requests
+// TODO: Make a more user-friendly view of the bins
+
 var express = require('express')
   , http = require('http')
+  , socketio = require('socket.io')
   , path = require('path')
   , os = require('os')
   , fs = require('fs')
@@ -66,7 +71,7 @@ app.get('/inspect/:id', function(req, res) {
 
   var filePath = postbin.resolvePath(id);
   fs.readFile(filePath, function(err, fileData) {
-    if (err && err.errno !== 34) throw err;
+    if (err && err.code !== 'ENOENT') throw err;
 
     var requests = [ ];
     if (!err) {
@@ -128,7 +133,7 @@ app.all('/:id', function(req, res) {
 
     var filePath = postbin.resolvePath(id);
     fs.readFile(filePath, function(err, fileData) {
-      if (err && err.errno !== 34) throw err;
+      if (err && err.code !== 'ENOENT') throw err;
 
       var requests = [ ];
       if (!err) requests = JSON.parse(fileData);
@@ -162,11 +167,29 @@ var render404 = function(req, res) {
 };
 app.all('*', render404);
 
+/**
+ * Clean the bins now, and setup the timeout for future cleaning.
+ */
+var clean = function() {
+  console.log("Cleaning bins...");
+  postbin.cleanBins();
+  setTimeout(clean, 24 * 60 * 60 * 1000);
+};
 
-http.createServer(app).listen(app.get('port'), function() {
+var server = http.createServer(app);
+server.listen(app.get('port'), function() {
   console.log("PostBin (in node.js)");
-  console.log("Bins stored in " + postbin.basePath);
-  console.log("");
+  console.log("Bins stored in " + postbin.BIN_PATH);
   console.log("Listening on port " + app.get('port'));
+  console.log("");
+
+  // Clean the bins every once in a while
+  clean();
 });
+
+
+/**
+ * Experimenting with socket bins.
+ */
+//var socket = socketio.listen(server);
 
