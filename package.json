@@ -7,7 +7,8 @@
   "dependencies": {
     "express": "3.0.0rc4",
     "jade": "*",
+    "async": "*",
     "less-middleware": "*",
-    "socket.io": "*"
+    "websocket": "*"
   }
 }

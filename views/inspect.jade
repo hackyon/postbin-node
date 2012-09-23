@@ -6,6 +6,12 @@ block content
     | Send HTTP requests to 
     a(href='/#{binId}',target='_blank') http://#{host}/#{binId}
     |  and they will be captured on this page.
+  if sockets.length
+    ul
+      each socket in sockets
+        each socketEvent in socket
+          h3 Socket: #{socketEvent.type}
+
   if requests.length
     ul
       each request in requests
@@ -13,6 +19,8 @@ block content
           h3 #{request.ago} 
             span.light (#{request.utc}, #{request.ts}ms)
           div.raw #{request.raw}
+
+  if requests.length || sockets.length
     p
       a.button(href='/inspect/'+newId, target='_blank') New Bin
       a(href='/', target='_blank') Home

@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>WebSocketBin | Getting to know WebSockets</title>
+
+<style type="text/css">
+  html { margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Nueve',Arial,sans-serf; font-size: 13px; line-height:18px; margin: 100px 0 0 150px; padding: 0; }
+  h1 { font-weight: normal; font-size: 24px; }
+  #logger { width: 550px; }
+</style>
+
+<script type="text/javascript">
+window.onload = function() {
+  var binId = window.location.hash.replace('#', '');
+  if (!binId) binId = '8789A4EE45';
+  var address  = 'ws://' + window.location.host + '/' + binId;
+  var protocol = 'echo';
+
+  var logger = document.getElementById('logger');
+  var log = function(message) {
+    var div = document.createElement('div');
+    div.innerHTML = message;
+    logger.appendChild(div);
+  };
+
+  log('Opening a new WebSocket to "' + address + '"...');
+  var socket = new WebSocket(address, protocol);
+
+  socket.onopen = function() {
+    log('Connection established!');
+
+    var message = 'Hi. This is the WebSocketBin demo.';
+    log('Sending message: "' + message + '"');
+    socket.send(message);
+  };
+
+  socket.onerror = function(error) {
+    log('[ERROR] ' + error.message);
+  }
+
+  socket.onmessage = function(e) {
+    log('Received a message: "' + e.data + '"');
+
+    log('Closing the connection');
+    socket.close();
+  }
+
+  socket.onclose = function(e) {
+    log('Connection closed');
+  }
+}
+</script>
+</head>
+<body>
+  <h1>WebsocketBin</h1>
+  <div id="logger"></div>
+</body>
+</html>
+

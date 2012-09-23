@@ -10,9 +10,11 @@ block content
       |  and 
       a(href='http://expressjs.com', target='_blank') express.js
       | . It's an more visually pleasing alternative to 
+      code nc -l 
+      | or 
       code tcpdump -x
       | .
-    p Each bin stores a maximum of 10 requests. Bins are removed if they have not been accessed for 48 hours.
+    p Each bin stores a maximum of 10 requests. Bins are removed if they have not been accessed for at least 48 hours.
     a.button(href='/inspect/'+newId) Create Bin
 
     if recentBins.length
@@ -26,4 +28,4 @@ block content
     footer Created by 
       a(href='http://www.badassdon.com', target='_blank') badassdon
       | .
-  
+ 

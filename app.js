@@ -1,14 +1,14 @@
-// TODO: Support sockets
-// TODO: User-specified response for HTTP requests
 // TODO: Make a more user-friendly view of the bins
+// TODO: User-specified response for HTTP requests
 
 var express = require('express')
   , http = require('http')
-  , socketio = require('socket.io')
+  , WebSocketServer = require('websocket').server
   , path = require('path')
   , os = require('os')
   , fs = require('fs')
-  , postbin = require('./lib/postbin');
+  , async = require('async')
+  , Bin = require('./lib/bin');
 
 var app = express();
 
@@ -43,17 +43,10 @@ app.configure(function() {
  * Route to the root path.
  */
 app.get('/', function(req, res) {
-  var recentBins = [];
-  if (req.cookies) {
-    try {
-      recentBins = JSON.parse(req.cookies['postbin-recent']);
-    } catch (e) { }
-  }
-
   res.render('index', { 
     title: 'PostBin in node.js',
-    newId: postbin.generateId(),
-    recentBins: recentBins
+    newId: Bin.generateId(),
+    recentBins: Bin.getRecent(req)
   });
 });
 
@@ -62,52 +55,45 @@ app.get('/', function(req, res) {
  * Routes to inspect bins.
  */
 app.get('/inspect/:id', function(req, res) {
-  var id = postbin.parseId(req.params.id);
+  var id = Bin.parseId(req.params.id);
   if (!id) {
     // Render 404 if id is not well-formed
     render404(req, res);
     return;
   }
 
-  var filePath = postbin.resolvePath(id);
-  fs.readFile(filePath, function(err, fileData) {
-    if (err && err.code !== 'ENOENT') throw err;
+  // Load the bin
+  var bin = new Bin(id);
+  async.parallel([
+    function(cb) {
+      bin.getHTTPRequests(function(requests) {
+        cb(null, requests);
+      });
+    },
+    function(cb) {
+      bin.getWebSocketConnections(function(sockets) {
+        cb(null, sockets);
+      });
+    }],
+    function(err, load) {
+      var requests = load[0];
+      console.log(requests);
 
-    var requests = [ ];
-    if (!err) {
-      requests = JSON.parse(fileData);
+      var sockets  = load[1];
 
-      // Provide more variables for formatting
-      for (var i = 0; i < requests.length; i++) {
-        var date = new Date(requests[i].time);
-        requests[i].ago = postbin.ago(date);
-        requests[i].utc = date.toString();
-        requests[i].ts  = date.getTime().toString();
+      if (requests.length > 0 || sockets.length > 0) {
+        bin.markAsRecent(req, res);
       }
-
-      // Save the recent bins inside the cookies
-      var recentBins = [];
-      if (req.cookies) {
-        try {
-          recentBins = JSON.parse(req.cookies['postbin-recent']);
-        } catch (e) { }
-        if (recentBins.indexOf(id) === -1) {
-          recentBins.unshift(id);
-          recentBins = recentBins.slice(0, 5);
-        }
-      }
-      res.cookie('postbin-recent', JSON.stringify(recentBins),
-        { expires: new Date((+new Date()) + 1000000) });
+      res.render('inspect', {
+        title: 'PostBin /' + id,
+        binId: id,
+        newId: Bin.generateId(),
+        requests: requests,
+        sockets: sockets,
+        host: req.headers.host || os.hostname()
+      });
     }
-
-    res.render('inspect', {
-      title: 'PostBin /' + id,
-      binId: id,
-      newId: postbin.generateId(),
-      requests: requests,
-      host: req.headers.host || os.hostname()
-    });
-  });
+  );
 });
 
 
@@ -115,7 +101,7 @@ app.get('/inspect/:id', function(req, res) {
  * Routes to accept requests.
  */
 app.all('/:id', function(req, res) {
-  var id = postbin.parseId(req.params.id);
+  var id = Bin.parseId(req.params.id);
   if (!id) {
     // Render 404 if id is not well-formed
     render404(req, res);
@@ -129,31 +115,17 @@ app.all('/:id', function(req, res) {
     rawBody += chunk;
   });
   req.on('end', function() {
+    req.rawBody = rawBody;
+
+    var bin = new Bin(id);
+    bin.markAsRecent(req, res);
+
     res.send(200, 'OK');
 
-    var filePath = postbin.resolvePath(id);
-    fs.readFile(filePath, function(err, fileData) {
-      if (err && err.code !== 'ENOENT') throw err;
-
-      var requests = [ ];
-      if (!err) requests = JSON.parse(fileData);
-
-      // Capture the request
-      requests.push({
-        time: +new Date,
-        raw:  postbin.raw(req, rawBody)
-      });
-
-      // Limit the number of requests to store
-      requests.sort(function(a, b) {
-        return b.time-a.time;
-      });
-      requests = requests.slice(0, 10);
-
-      fs.writeFile(filePath, JSON.stringify(requests));
+    bin.getHTTPRequests(function() {
+      bin.addHTTPRequest(req);
     });
   });
-
 });
 
 /**
@@ -168,28 +140,101 @@ var render404 = function(req, res) {
 app.all('*', render404);
 
 /**
- * Clean the bins now, and setup the timeout for future cleaning.
+ * Clean the bins every once in a while.
  */
 var clean = function() {
-  console.log("Cleaning bins...");
-  postbin.cleanBins();
+  Bin.clean();
   setTimeout(clean, 24 * 60 * 60 * 1000);
 };
 
 var server = http.createServer(app);
 server.listen(app.get('port'), function() {
   console.log("PostBin (in node.js)");
-  console.log("Bins stored in " + postbin.BIN_PATH);
+  console.log("Bins stored in " + Bin.BIN_PATH);
   console.log("Listening on port " + app.get('port'));
   console.log("");
 
-  // Clean the bins every once in a while
-  clean();
+  clean(); // Start the cleaning 
 });
 
 
 /**
- * Experimenting with socket bins.
+ * Provide support for WebSockets.
  */
-//var socket = socketio.listen(server);
+var webSocketServer = new WebSocketServer({
+  httpServer: server,
+  autoAcceptConnections: false,
+  assembleFragments: false
+});
+
+webSocketServer.on('request', function(request) {
+  var handshakePath = request.resourceURL.path;
+  var id = Bin.parseId(handshakePath.replace('/', ''));
+  if (!id) { // Reject with 404 if id is not well-formed
+    request.reject(404);
+    return;
+  }
+
+  // Accept the first available protocol
+  var protocol = null;
+  if (request.requestedProtocols) {
+    protocol = request.requestedProtocols[0];
+  }
+
+  var connection = request.accept(protocol, request.origin);
+
+  var bin = new Bin(id);
+  var socketId = bin.addWebSocketEvent(0, 'connection', {
+    connection: connection,
+    request:    request,
+    protocol:   protocol
+  });
+
+  connection.on('message', function(message) {
+    if (protocol == 'echo') {
+      connection.send(message.utf8Data);
+    }
+  });
+
+  connection.on('close', function(reasonCode, description) {
+  });
+
+  connection.on('frame', function(frame) {
+    // Intercept the raw frames
+    //console.log(frame.opcode);
+    //console.log(frame.binaryPayload);
+
+    // Hack to have WebSocketConnection process the frames for us
+    var wrapper = { };
+    wrapper.__proto__ = connection;
+    wrapper.assembleFragments = true;
+    wrapper.processFrame(frame);
+  });
+});
+
+
+/**
+ * Experimenting with Unix sockets (it's much easier to just use nc)
+ */
+if (false) {
+  var net = require('net');
+
+  var socketPort = 3030;
+  var socketServer = net.createServer(function(socket) {
+    console.log('SOCKET CONNECTION ESTABLISHED');
+    socket.on('data', function(data) {
+      console.log(socket.remoteAddress);
+      console.log(data);
+    });
+
+    socket.on('end', function() {
+      console.log('SOCKET CLOSED');
+    });
+  });
+
+  socketServer.listen(socketPort, function() {
+    console.log("Listening on port " + socketPort + " for Unix sockets");
+  });
+}
+
 
