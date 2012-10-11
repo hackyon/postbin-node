@@ -6,21 +6,23 @@ block content
     | Send HTTP requests to 
     a(href='/#{binId}',target='_blank') http://#{host}/#{binId}
     |  and they will be captured on this page.
-  if sockets.length
-    ul
-      each socket in sockets
-        each socketEvent in socket
-          h3 Socket: #{socketEvent.type}
 
   if requests.length
     ul
       each request in requests
-        li.request
-          h3 #{request.ago} 
-            span.light (#{request.utc}, #{request.ts}ms)
-          div.raw #{request.raw}
+        if request.websocket
+          li.request
+            h3 [Socket] #{request.ago} 
+              span.light (#{request.utc}, #{request.ts}ms)
+            each event in request.events
+              div.raw #{event.type}
 
-  if requests.length || sockets.length
+        else
+          li.request
+            h3 #{request.ago} 
+              span.light (#{request.utc}, #{request.ts}ms)
+            div.raw #{request.raw}
+
     p
       a.button(href='/inspect/'+newId, target='_blank') New Bin
       a(href='/', target='_blank') Home

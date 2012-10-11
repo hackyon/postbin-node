@@ -47,6 +47,9 @@ window.onload = function() {
 
   socket.onclose = function(e) {
     log('Connection closed');
+
+    var address = 'http://' + window.location.host + '/inspect/' + binId;
+    log('View WebSocetBin at <a href="' + address + '">' + address + '</a>');
   }
 }
 </script>

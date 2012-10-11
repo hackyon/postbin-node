@@ -77,19 +77,36 @@ app.get('/inspect/:id', function(req, res) {
     }],
     function(err, load) {
       var requests = load[0];
-      console.log(requests);
-
       var sockets  = load[1];
 
-      if (requests.length > 0 || sockets.length > 0) {
+      // Put the HTTP requests and sockets together
+      var everything = [];
+      var r = 0;
+      var s = 0;
+      while (r < requests.length && s < sockets.length) {
+        if (requests[r].time < sockets[s].time) {
+          everything.push(sockets[s]);
+          s += 1;
+        } else {
+          everything.push(requests[r]);
+          r += 1;
+        }
+      }
+      for (; r < requests.length; r++) {
+        everything.push(requests[r]);
+      }
+      for (; s < sockets.length; s++) {
+        everything.push(sockets[s]);
+      }
+
+      if (everything.length > 0) {
         bin.markAsRecent(req, res);
       }
       res.render('inspect', {
         title: 'PostBin /' + id,
         binId: id,
         newId: Bin.generateId(),
-        requests: requests,
-        sockets: sockets,
+        requests: everything,
         host: req.headers.host || os.hostname()
       });
     }
@@ -186,23 +203,33 @@ webSocketServer.on('request', function(request) {
   var bin = new Bin(id);
   var socketId = bin.addWebSocketEvent(0, 'connection', {
     connection: connection,
-    request:    request,
-    protocol:   protocol
+    request:    request
   });
-
+ 
   connection.on('message', function(message) {
+    bin.addWebSocketEvent(socketId, 'message', {
+      connection: connection,
+      message:    message
+    });
     if (protocol == 'echo') {
       connection.send(message.utf8Data);
     }
   });
 
   connection.on('close', function(reasonCode, description) {
+    bin.addWebSocketEvent(socketId, 'close', {
+      connection:  connection,
+      reasonCode:  reasonCode,
+      description: description
+    });
   });
 
   connection.on('frame', function(frame) {
     // Intercept the raw frames
-    //console.log(frame.opcode);
-    //console.log(frame.binaryPayload);
+    bin.addWebSocketEvent(socketId, 'frame', {
+      connection:  connection,
+      frame:       frame
+    });
 
     // Hack to have WebSocketConnection process the frames for us
     var wrapper = { };
