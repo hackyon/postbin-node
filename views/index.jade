@@ -18,6 +18,10 @@ block content
       code tcpdump -x
       | .
     p Each bin stores a maximum of 10 requests. Bins are removed if they have not been accessed for at least 48 hours.
+    p The source for this project is freely 
+      a(href='https://github.com/badassdon/postbin-node', target='_blank') available on github
+      |  under the MIT License.
+
     a.button(href='/inspect/'+newId) Create Bin
 
     if recentBins.length
