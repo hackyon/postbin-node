@@ -147,6 +147,14 @@ footer {
 .narrow {
   width: 500px;
 }
+.clear {
+  clear: both;
+}
+p.new {
+  color: #0a0;
+  padding: 5px 0;
+  margin: 5px 0;
+}
 a {
   color: #666;
   text-decoration: underline;
@@ -186,7 +194,7 @@ h3 {
   font-size: 18px;
   line-height: 36px;
 }
-h3 .light {
+.light {
   color: #ddd;
 }
 .request {
@@ -200,4 +208,29 @@ h3 .light {
   padding: 10px;
   white-space: pre;
   word-wrap: break-word;
+}
+.socket li {
+  border: 1px solid #eee;
+  margin: 0 0 5px 0;
+}
+.socket li .header {
+  float: left;
+  width: 100%;
+}
+.socket li .header strong {
+  text-transform: capitalize;
+}
+.socket li .header .left {
+  float: left;
+  padding: 0 10px;
+}
+.socket li .header .right {
+  float: right;
+  padding: 0 10px;
+}
+.socket li .body {
+  clear: both;
+  color: #333;
+  border: 0;
+  border-top: 1px solid #eee;
 }

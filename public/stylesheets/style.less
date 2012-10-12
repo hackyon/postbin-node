@@ -36,6 +36,16 @@ footer {
   width: 500px;
 }
 
+.clear {
+  clear: both;
+}
+
+p.new {
+  color: #0a0;
+  padding: 5px 0;
+  margin: 5px 0; 
+}
+
 a {
   color: #666; 
   text-decoration: underline; 
@@ -76,9 +86,10 @@ h1 {
 h3 {
   font-size: 18px;
   line-height: 36px;
-  .light {
-    color: #ddd;
-  }
+}
+
+.light {
+  color: #ddd;
 }
 
 .request {
@@ -94,4 +105,36 @@ h3 {
   white-space: pre;
   word-wrap: break-word;
 }
+
+.socket li {
+  border: 1px solid #eee;
+  margin: 0 0 5px 0;
+
+  .header {
+    float: left;
+    width: 100%;
+
+    strong {
+      text-transform: capitalize;
+    }
+
+    .left {
+      float: left;
+      padding: 0 10px;
+    }
+
+    .right {
+      float: right;
+      padding: 0 10px;
+    }
+  }
+  
+  .body {
+    clear: both;
+    color: #333;
+    border: 0;
+    border-top: 1px solid #eee;
+  }
+}
+
 

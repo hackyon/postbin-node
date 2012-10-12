@@ -12,10 +12,29 @@ block content
       each request in requests
         if request.websocket
           li.request
-            h3 [Socket] #{request.ago} 
+            h3 WebSocket | #{request.ago} 
               span.light (#{request.utc}, #{request.ts}ms)
-            each event in request.events
-              div.raw #{event.type}
+            ul.socket
+              each event in request.events
+                li 
+                  div.header 
+                    div.left 
+                      strong #{event.type} 
+                      if event.type == 'message' 
+                        | (#{event.message.type})
+                      else if event.type == 'close'
+                        | (#{event.reasonCode})
+                    div.right.light #{event.ts}ms
+
+                  if event.type == 'connection'
+                    div.body.raw #{event.raw}
+                  else if event.type == 'message'
+                    if event.message.type == 'utf8'
+                      div.body.raw #{event.message.utf8Data}
+                    else
+                      div.body.raw #{event.message.binaryData}
+                  else 
+                    div.clear
 
         else
           li.request
