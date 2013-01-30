@@ -10,7 +10,7 @@ There is also support for [HTML5 WebSockets](http://en.wikipedia.org/wiki/WebSoc
 Contributions and suggestions are welcome. They're encouraged, actually.
 
 
-How to Run Locally
+How to Run on localhost
 --------------------------------------
 Run postbin-node the same way you run any other Express.js application. The entire process should not take more than a couple minutes. 
 
