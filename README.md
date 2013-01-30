@@ -17,10 +17,10 @@ Run postbin-node the same way you run any other Express.js application. The enti
 Step-by-step instructions:
 
 1. [Install Node.js and npm](https://github.com/joyent/node/wiki/Installation)
-2. git clone https://github.com/badassdon/postbin-node.git
-3. cd postbin-node
-4. npm install
-5. node app.js
+2. ```git clone https://github.com/badassdon/postbin-node.git```
+3. ```cd postbin-node```
+4. ```npm install```
+5. ```node app.js```
 6. See it in action at [http://localhost:3000](http://localhost:3000/)
 
 
