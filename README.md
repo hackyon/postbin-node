@@ -35,5 +35,3 @@ Credits
 --------------------------------------
 Based on [RequestBin](http://requestb.in/) by Jeff Lindsay. 
 
-Created by [Donald Lau](http://www.badassdon.com).
-
