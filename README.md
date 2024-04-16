@@ -1,4 +1,4 @@
-[postbin-node](http://postbin.hackyon.com/) - PostBin in Node.js
+PostBin in Node.js
 ================================================================
 
 Capture the raw HTTP requests sent to a URL, so you can debug the stuff you get from webhooks. Based on the [PostBin/RequestBin](http://requestb.in/) written in Python. Made with Node.js and Express.js, postbin-node is a more visually pleasing alternative to nc -l or tcpdump -x.
